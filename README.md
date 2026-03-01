@@ -1,4 +1,6 @@
-# Academic project based on "[ML-SUPERB: Multilingual Speech Universal PERformance Benchmark", Shi et al. (2023)](https://arxiv.org/abs/2305.10615).
+## Academic project based on "[ML-SUPERB: Multilingual Speech Universal PERformance Benchmark", Shi et al. (2023)](https://arxiv.org/abs/2305.10615).
+
+#### Guidelines
 
 - Project supervisor: M. Poli
 - Code of the original article: [https://github.com/espnet/espnet/tree/master/egs2/ml_superb](https://github.com/espnet/espnet/tree/master/egs2/ml_superb)
@@ -9,3 +11,7 @@
     - Other tasks (phone recognition, language identification...)
     - Other training procedure (LoRA or other PEFT methods as in ML-SUPERB 2.0, etc.)
     - Multilingual finetuning vs. monolingual finetuning.
+
+#### Data
+7th version (aligned with [Interspeech2023](https://arxiv.org/abs/2305.10615) and [ASRU2023](https://arxiv.org/abs/2310.05513))
+[Download link (Google Drive)](https://drive.google.com/file/d/1QYjl-7vflle__3AfuosAC5VJGiBDvEqz/view?usp=drive_link)
