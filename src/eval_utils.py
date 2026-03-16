@@ -1,5 +1,7 @@
 import torch
 from tqdm.auto import tqdm
+import json
+import pandas as pd
 
 
 def ctc_decode(logits, idx_to_char, blank_id):
@@ -70,3 +72,15 @@ def run_inference(model, loader, device, idx_to_char, vocab):
             references.extend(refs)
 
     return predictions, references 
+
+def save_results_json(results, path):
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2, ensure_ascii=False)
+
+
+def save_predictions_csv(references, predictions, path):
+    df = pd.DataFrame({
+        "reference": references,
+        "prediction": predictions,
+    })
+    df.to_csv(path, index=False)

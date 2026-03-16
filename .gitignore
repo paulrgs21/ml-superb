@@ -1,0 +1,11 @@
+# checkpoints
+*.pt
+*.pth
+checkpoints/
+
+# dataset
+data/
+
+# python
+__pycache__/
+*.pyc

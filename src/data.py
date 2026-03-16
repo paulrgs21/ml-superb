@@ -6,7 +6,13 @@ import torchaudio
 from torch.utils.data import Dataset, DataLoader
 import torch.nn.functional as F
 
+import soundfile as sf
+
+import soundfile as sf
+
 from pathlib import Path
+
+from functools import partial
 
 def parse_transcript_file(transcript_path):
     """
@@ -49,9 +55,13 @@ class ASRDataset(Dataset):
         """
         Args:
             csv_path: path to CSV (utt_id, audio_filename, text)
-            audio_dir: file containing the .wav
+            audio_dir: containing the .wav 
         """
-        self.df = pd.read_csv(csv_path)
+        if isinstance(csv_path, pd.DataFrame):
+            self.df = csv_path.reset_index(drop=True)
+        else:
+            self.df = pd.read_csv(csv_path)
+
         self.audio_dir = Path(audio_dir)
         
         print(f"Loaded {len(self.df)} samples from {csv_path}")
@@ -75,33 +85,39 @@ class ASRDataset(Dataset):
     
     def __getitem__(self, idx):
         row = self.df.iloc[idx]
-        
+
         # full audio path
-        audio_path = self.audio_dir / row['audio_filename']
-        
+        audio_path = self.audio_dir / row["audio_filename"]
+
         try:
-            waveform, sr = torchaudio.load(audio_path)
-            
+            audio, sr = sf.read(audio_path)
+            waveform = torch.tensor(audio, dtype=torch.float32)
+
+            # soundfile: mono -> (time,), multi -> (time, channels)
+            if waveform.ndim == 1:
+                waveform = waveform.unsqueeze(0)  # (1, time)
+            else:
+                waveform = waveform.transpose(0, 1)  # (channels, time)
+
             # Resample to 16kHz
             if sr != 16000:
                 resampler = torchaudio.transforms.Resample(sr, 16000)
                 waveform = resampler(waveform)
-            
+
             # Mono
             if waveform.shape[0] > 1:
                 waveform = waveform.mean(dim=0, keepdim=True)
-            
+
             return {
-                'audio': waveform.squeeze(0),
-                'text': row['text'],
+                "audio": waveform.squeeze(0),
+                "text": row["text"],
             }
-        
+
         except Exception as e:
             print(f"Error loading {audio_path}: {e}")
-            # Return silence if error
             return {
-                'audio': torch.zeros(16000),
-                'text': '',
+                "audio": torch.zeros(16000),
+                "text": "",
             }
         
 
@@ -181,3 +197,6 @@ def collate_fn(batch, vocab):
         'texts': texts_padded,
         'text_lengths': text_lengths,
     }
+
+def make_collate_fn(vocab):
+    return partial(collate_fn, vocab=vocab)

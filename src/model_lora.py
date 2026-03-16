@@ -73,7 +73,7 @@ class WeightedSumLayer(nn.Module):
         return weighted
 
 
-class HuBERT_CTC(nn.Module):
+class HuBERT_CTC_LoRA(nn.Module):
     """
     Complete ML-SUPERB architecture:
     1. HuBERT-base (frozen)
