@@ -1,0 +1,13 @@
+{
+  "experiment_name": "mhubert_houlsby_swa_10min_b32",
+  "model_name": "utter-project/mHuBERT-147-base-3rd-iter",
+  "lang": "swa",
+  "data_size": "10min",
+  "num_train_samples": 92,
+  "num_epochs": 522,
+  "target_iterations": 1500,
+  "actual_iterations": 1566,
+  "best_dev_loss": 1.0224384848888104,
+  "cer": 0.22243602078121993,
+  "training_time_minutes": 27.19651883840561
+}
