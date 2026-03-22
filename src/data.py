@@ -200,3 +200,64 @@ def collate_fn(batch, vocab):
 
 def make_collate_fn(vocab):
     return partial(collate_fn, vocab=vocab)
+
+
+def load_lang_data(lang, data_root, data_size="10min"):
+    """
+    Load train/dev/test DataFrames for one language.
+    Adds columns: audio_path (full path to .wav), lang.
+    """
+    lang_dir = Path(data_root) / lang
+    audio_dir = lang_dir / "wav"
+
+    suffix = "10min" if data_size == "10min" else "1h"
+    df_train = parse_transcript_file(lang_dir / f"transcript_{suffix}_train.txt")
+    df_dev = parse_transcript_file(lang_dir / "transcript_10min_dev.txt")
+    df_test = parse_transcript_file(lang_dir / "transcript_10min_test.txt")
+
+    for df in [df_train, df_dev, df_test]:
+        fix_audio_extension(df)
+        df["audio_path"] = df["audio_filename"].apply(lambda f: str(audio_dir / f))
+        df["lang"] = lang
+
+    return df_train, df_dev, df_test
+
+
+class MultilingualASRDataset(Dataset):
+    """
+    Like ASRDataset, but each row carries its own full audio path.
+    Expects df columns: [audio_path, text]
+    """
+
+    def __init__(self, df):
+        self.df = df.reset_index(drop=True)
+        print(f"MultilingualASRDataset: {len(self.df)} samples")
+
+    def __len__(self):
+        return len(self.df)
+
+    def __getitem__(self, idx):
+        row = self.df.iloc[idx]
+        audio_path = Path(row["audio_path"])
+
+        try:
+            audio, sr = sf.read(audio_path)
+            waveform = torch.tensor(audio, dtype=torch.float32)
+
+            if waveform.ndim == 1:
+                waveform = waveform.unsqueeze(0)
+            else:
+                waveform = waveform.transpose(0, 1)
+
+            if sr != 16000:
+                resampler = torchaudio.transforms.Resample(sr, 16000)
+                waveform = resampler(waveform)
+
+            if waveform.shape[0] > 1:
+                waveform = waveform.mean(dim=0, keepdim=True)
+
+            return {"audio": waveform.squeeze(0), "text": row["text"]}
+
+        except Exception as e:
+            print(f"Error loading {audio_path}: {e}")
+            return {"audio": torch.zeros(16000), "text": ""}
