@@ -4,8 +4,29 @@ import torchaudio
 from torch.utils.data import Dataset, DataLoader
 import torch.nn.functional as F
 
-from transformers import HubertModel
+from transformers import HubertModel, Wav2Vec2Model
 from jiwer import cer
+
+
+def load_ssl_encoder(model_name):
+    """
+    Auto-detect and load the correct SSL encoder class.
+    HuBERT models use HubertModel, wav2vec2/XLS-R use Wav2Vec2Model.
+    Both have identical interfaces for our usage.
+    """
+    name_lower = model_name.lower()
+    model_cls = Wav2Vec2Model if (
+        'wav2vec2' in name_lower or 'xls-r' in name_lower or 'xlsr' in name_lower
+    ) else HubertModel
+
+    try:
+        return model_cls.from_pretrained(model_name, use_safetensors=True)
+    except Exception as e:
+        raise RuntimeError(
+            f"Impossible de charger {model_name} avec safetensors. "
+            "Le checkpoint n'a peut-être pas de fichiers .safetensors, "
+            "ou le cache local est corrompu."
+        ) from e
 
 
 # Model
@@ -60,55 +81,45 @@ class WeightedSumLayer(nn.Module):
         Args: hidden_states: tuple of (num_layers, batch, time, hidden)
         Returns: weighted sum (batch, time, hidden)
         """
-        # Stack all layers
-        stacked = torch.stack(hidden_states, dim=0)  # (num_layers, batch, time, hidden)
-        
-        # Normalize weights
+        stacked = torch.stack(hidden_states, dim=0)
         normed_weights = F.softmax(self.weights, dim=0)
-        
-        # Weighted sum
         weighted = torch.sum(
             stacked * normed_weights.view(-1, 1, 1, 1),
             dim=0
-        )  # (batch, time, hidden)
-        
+        )
         return weighted
 
 
 class HuBERT_CTC(nn.Module):
     """
-    Complete ML-SUPERB architecture:
-    1. HuBERT-base (frozen)
+    ML-SUPERB downstream architecture:
+    1. SSL encoder (frozen) — HuBERT or Wav2Vec2, auto-detected
     2. Weighted sum of layers
     3. SpecAugment
     4. Conv downsample ÷2
-    5. Transformer (2 layers, 8 heads, 1024 FFN)
+    5. Transformer (configurable layers, 8 heads, 1024 FFN)
     6. CTC head
     """
     
-    def __init__(self, vocab_size, model_name='utter-project/mHuBERT-147-base-3rd-iter'):
+    def __init__(self, vocab_size, model_name='utter-project/mHuBERT-147-base-3rd-iter',
+                 num_transformer_layers=2):
         super().__init__()
         
         # 1. Encoder (frozen)
-        self.encoder = HubertModel.from_pretrained(model_name)
-        
-        # Freeze encoder
+        self.encoder = load_ssl_encoder(model_name)
         for param in self.encoder.parameters():
             param.requires_grad = False
+        self.encoder.eval()
         
-        self.encoder.eval()  # Set to eval mode
-        
-        # Get config
-        num_layers = self.encoder.config.num_hidden_layers + 1  # +1 for input
-        hidden_size = self.encoder.config.hidden_size  # 768 for mHuBERT base
-        
+        num_layers = self.encoder.config.num_hidden_layers + 1
+        hidden_size = self.encoder.config.hidden_size
         
         # 2. Weighted sum of layers
         self.weighted_sum = WeightedSumLayer(num_layers)
         
         # 3. SpecAugment
         self.spec_augment = SpecAugment(
-            freq_mask_param=27,   # Standard SUPERB benchmark values
+            freq_mask_param=27,
             time_mask_param=100,
             num_freq_masks=2,
             num_time_masks=2
@@ -123,7 +134,7 @@ class HuBERT_CTC(nn.Module):
             padding=0
         )
         
-        # 5. Transformer (2 layers)
+        # 5. Transformer (configurable depth)
         transformer_layer = nn.TransformerEncoderLayer(
             d_model=hidden_size,
             nhead=8,
@@ -134,7 +145,7 @@ class HuBERT_CTC(nn.Module):
         )
         self.transformer = nn.TransformerEncoder(
             transformer_layer,
-            num_layers=2
+            num_layers=num_transformer_layers
         )
         
         # 6. CTC head
@@ -142,34 +153,52 @@ class HuBERT_CTC(nn.Module):
         
         # Dropout
         self.dropout = nn.Dropout(0.1)
-        
 
     def forward(self, audios, audio_lengths=None):
-        # 1. Encode (get all layers)
-        outputs = self.encoder(
-            audios,
-            output_hidden_states=True
-        )
-        
+        outputs = self.encoder(audios, output_hidden_states=True)
         all_layers = outputs.hidden_states
         
-        # 2. Weighted sum of layers
-        hidden = self.weighted_sum(all_layers)  # (batch, time, hidden)
-        
-        # 3. SpecAugment
+        hidden = self.weighted_sum(all_layers)
         hidden = self.spec_augment(hidden)
         
-        # 4. Conv downsample
-        hidden = hidden.transpose(1, 2)  # (batch, hidden, time)
-        hidden = self.downsample(hidden)  # (batch, hidden, time/2)
-        hidden = hidden.transpose(1, 2)  # (batch, time/2, hidden)
+        hidden = hidden.transpose(1, 2)
+        hidden = self.downsample(hidden)
+        hidden = hidden.transpose(1, 2)
         
-        # 5. Transformer
         hidden = self.transformer(hidden)
         
-        # 6. Dropout + CTC
         hidden = self.dropout(hidden)
         logits = self.ctc_head(hidden)
         
-        return logits, hidden.shape[1]  # (batch, time, vocab), output lengths
+        return logits, hidden.shape[1]
 
+
+class HuBERT_Linear_CTC(nn.Module):
+    """
+    Minimal downstream: SSL encoder (frozen) → Weighted sum → Linear CTC.
+    No SpecAugment, no downsample, no contextual layers.
+    Measures raw SSL representation quality.
+    """
+    
+    def __init__(self, vocab_size, model_name='utter-project/mHuBERT-147-base-3rd-iter'):
+        super().__init__()
+        
+        self.encoder = load_ssl_encoder(model_name)
+        for param in self.encoder.parameters():
+            param.requires_grad = False
+        self.encoder.eval()
+        
+        num_layers = self.encoder.config.num_hidden_layers + 1
+        hidden_size = self.encoder.config.hidden_size
+        
+        self.weighted_sum = WeightedSumLayer(num_layers)
+        self.ctc_head = nn.Linear(hidden_size, vocab_size)
+    
+    def forward(self, audios, audio_lengths=None):
+        outputs = self.encoder(audios, output_hidden_states=True)
+        all_layers = outputs.hidden_states
+        
+        hidden = self.weighted_sum(all_layers)
+        logits = self.ctc_head(hidden)
+        
+        return logits, hidden.shape[1]
