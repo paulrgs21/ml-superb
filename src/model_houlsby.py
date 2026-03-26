@@ -7,12 +7,22 @@ from transformers import HubertModel, Wav2Vec2Model
 
 
 def load_ssl_encoder(model_name):
-    """Auto-detect and load HuBERT or Wav2Vec2."""
+    """
+    Auto-detect and load the correct SSL encoder class.
+    HuBERT models use HubertModel, wav2vec2/XLS-R use Wav2Vec2Model.
+    Both have identical interfaces for our usage.
+    """
     name_lower = model_name.lower()
-    if 'wav2vec2' in name_lower or 'xls-r' in name_lower or 'xlsr' in name_lower:
-        return Wav2Vec2Model.from_pretrained(model_name)
-    else:
-        return HubertModel.from_pretrained(model_name)
+    model_cls = Wav2Vec2Model if (
+        'wav2vec2' in name_lower or 'xls-r' in name_lower or 'xlsr' in name_lower
+    ) else HubertModel
+
+    try:
+        return model_cls.from_pretrained(model_name, use_safetensors=True)
+    except Exception as e:
+        raise RuntimeError(
+            f"Impossible to load {model_name} with safetensors."
+        ) from e
 
 
 def get_encoder_layers(encoder):

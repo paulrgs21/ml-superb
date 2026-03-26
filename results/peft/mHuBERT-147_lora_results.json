@@ -1,0 +1,10 @@
+{
+  "experiment": "mHuBERT-147_lora",
+  "ssl_model": "mHuBERT-147",
+  "peft_method": "lora",
+  "total_params_M": 103.8,
+  "trainable_params_M": 9.38,
+  "best_dev_loss": 0.935,
+  "test_cer": 0.1868,
+  "training_minutes": 26.5
+}

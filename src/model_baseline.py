@@ -23,9 +23,7 @@ def load_ssl_encoder(model_name):
         return model_cls.from_pretrained(model_name, use_safetensors=True)
     except Exception as e:
         raise RuntimeError(
-            f"Impossible de charger {model_name} avec safetensors. "
-            "Le checkpoint n'a peut-être pas de fichiers .safetensors, "
-            "ou le cache local est corrompu."
+            f"Impossible to load {model_name} with safetensors."
         ) from e
 
 

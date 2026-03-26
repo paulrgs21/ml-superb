@@ -1,0 +1,10 @@
+{
+  "experiment": "HuBERT-base_houlsby",
+  "ssl_model": "HuBERT-base",
+  "peft_method": "houlsby",
+  "total_params_M": 104.7,
+  "trainable_params_M": 10.29,
+  "best_dev_loss": 1.4207,
+  "test_cer": 0.3342,
+  "training_minutes": 26.2
+}

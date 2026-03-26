@@ -1,0 +1,10 @@
+{
+  "experiment": "mHuBERT-147_linear",
+  "ssl_model": "mHuBERT-147",
+  "downstream": "linear",
+  "total_params_M": 94.4,
+  "trainable_params_M": 0.03,
+  "best_dev_loss": 5.5703,
+  "test_cer": 0.822,
+  "training_minutes": 28.5
+}

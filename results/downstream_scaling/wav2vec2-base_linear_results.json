@@ -1,0 +1,10 @@
+{
+  "experiment": "wav2vec2-base_linear",
+  "ssl_model": "wav2vec2-base",
+  "downstream": "linear",
+  "total_params_M": 94.4,
+  "trainable_params_M": 0.03,
+  "best_dev_loss": 4.0182,
+  "test_cer": 0.8318,
+  "training_minutes": 73.2
+}

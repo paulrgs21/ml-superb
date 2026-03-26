@@ -1,0 +1,10 @@
+experiment,ssl_model,downstream,total_params_M,trainable_params_M,best_dev_loss,test_cer,training_minutes
+mHuBERT-147_linear,mHuBERT-147,linear,94.4,0.03,5.5703,0.822,28.5
+mHuBERT-147_transformer_2L,mHuBERT-147,transformer_2L,103.5,9.09,1.0382,0.2257,25.1
+mHuBERT-147_transformer_6L,mHuBERT-147,transformer_6L,119.2,24.85,1.0554,0.228,27.8
+HuBERT-base_linear,HuBERT-base,linear,94.4,0.03,7.2584,0.9023,28.5
+HuBERT-base_transformer_2L,HuBERT-base,transformer_2L,103.5,9.09,1.4519,0.3606,30.5
+HuBERT-base_transformer_6L,HuBERT-base,transformer_6L,119.2,24.85,1.4844,0.3533,27.8
+wav2vec2-base_linear,wav2vec2-base,linear,94.4,0.03,4.0182,0.8318,73.2
+wav2vec2-base_transformer_2L,wav2vec2-base,transformer_2L,103.5,9.09,3.323,0.7824,34.5
+wav2vec2-base_transformer_6L,wav2vec2-base,transformer_6L,119.2,24.85,1.5894,0.3743,37.7
