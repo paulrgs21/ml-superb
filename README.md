@@ -14,8 +14,7 @@
    
 #### Report
 
-The full project report can be found here:  
-[Speech_NLP_Project.pdf](./Speech_NLP_Project.pdf)
+The full project report can be found here:  [Speech_NLP_Project.pdf](./Speech_NLP_Project.pdf)
 
 #### Data
 7th version aligned with [Interspeech2023](https://arxiv.org/abs/2305.10615) and [ASRU2023](https://arxiv.org/abs/2310.05513) (size: 29 Go):
