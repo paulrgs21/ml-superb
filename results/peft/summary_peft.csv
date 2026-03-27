@@ -1,0 +1,7 @@
+experiment,ssl_model,peft_method,total_params_M,trainable_params_M,best_dev_loss,test_cer,training_minutes
+mHuBERT-147_lora,mHuBERT-147,lora,103.8,9.38,0.935,0.1868,26.5
+mHuBERT-147_houlsby,mHuBERT-147,houlsby,104.7,10.29,1.0433,0.2213,26.6
+HuBERT-base_lora,HuBERT-base,lora,103.8,9.38,3.3075,0.757,25.7
+HuBERT-base_houlsby,HuBERT-base,houlsby,104.7,10.29,1.4207,0.3342,26.2
+wav2vec2-base_lora,wav2vec2-base,lora,103.8,9.38,1.4864,0.3841,36.2
+wav2vec2-base_houlsby,wav2vec2-base,houlsby,104.7,10.29,1.5115,0.3668,36.3

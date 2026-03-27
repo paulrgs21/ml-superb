@@ -1,0 +1,10 @@
+{
+  "experiment": "wav2vec2-base_lora",
+  "ssl_model": "wav2vec2-base",
+  "peft_method": "lora",
+  "total_params_M": 103.8,
+  "trainable_params_M": 9.38,
+  "best_dev_loss": 1.4864,
+  "test_cer": 0.3841,
+  "training_minutes": 36.2
+}

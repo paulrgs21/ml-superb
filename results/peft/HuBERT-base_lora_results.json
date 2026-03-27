@@ -1,0 +1,10 @@
+{
+  "experiment": "HuBERT-base_lora",
+  "ssl_model": "HuBERT-base",
+  "peft_method": "lora",
+  "total_params_M": 103.8,
+  "trainable_params_M": 9.38,
+  "best_dev_loss": 3.3075,
+  "test_cer": 0.757,
+  "training_minutes": 25.7
+}

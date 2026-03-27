@@ -1,0 +1,10 @@
+{
+  "experiment": "mHuBERT-147_transformer_2L",
+  "ssl_model": "mHuBERT-147",
+  "downstream": "transformer_2L",
+  "total_params_M": 103.5,
+  "trainable_params_M": 9.09,
+  "best_dev_loss": 1.0382,
+  "test_cer": 0.2257,
+  "training_minutes": 25.1
+}

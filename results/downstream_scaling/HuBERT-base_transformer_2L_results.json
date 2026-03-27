@@ -1,0 +1,10 @@
+{
+  "experiment": "HuBERT-base_transformer_2L",
+  "ssl_model": "HuBERT-base",
+  "downstream": "transformer_2L",
+  "total_params_M": 103.5,
+  "trainable_params_M": 9.09,
+  "best_dev_loss": 1.4519,
+  "test_cer": 0.3606,
+  "training_minutes": 30.5
+}

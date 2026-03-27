@@ -1,0 +1,10 @@
+{
+  "experiment": "wav2vec2-base_houlsby",
+  "ssl_model": "wav2vec2-base",
+  "peft_method": "houlsby",
+  "total_params_M": 104.7,
+  "trainable_params_M": 10.29,
+  "best_dev_loss": 1.5115,
+  "test_cer": 0.3668,
+  "training_minutes": 36.3
+}

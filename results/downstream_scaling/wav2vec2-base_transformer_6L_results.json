@@ -1,0 +1,10 @@
+{
+  "experiment": "wav2vec2-base_transformer_6L",
+  "ssl_model": "wav2vec2-base",
+  "downstream": "transformer_6L",
+  "total_params_M": 119.2,
+  "trainable_params_M": 24.85,
+  "best_dev_loss": 1.5894,
+  "test_cer": 0.3743,
+  "training_minutes": 37.7
+}
